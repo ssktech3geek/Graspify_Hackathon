@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface PanelRepository extends JpaRepository<Panel, UUID> {
     List<Panel> findByCanvasIdOrderByOrderIndexAsc(UUID canvasId);
+    void deleteByCanvasId(UUID canvasId);
 }

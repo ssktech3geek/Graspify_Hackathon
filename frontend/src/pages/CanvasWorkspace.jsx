@@ -6,7 +6,7 @@ import YoutubePanel from '../components/panels/YoutubePanel'
 import NotesPanel from '../components/panels/NotesPanel'
 import AiPanel from '../components/panels/AiPanel'
 import PdfPanel from '../components/panels/PdfPanel'
-import QuizPanel from '../components/panels/QuizPanel'
+import QuizPanel from '../components/QuizPanel'
 import { useAutoSave } from '../hooks/useAutoSave'
 
 function CanvasWorkspace() {

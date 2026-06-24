@@ -4,6 +4,7 @@ import com.graspify.model.User;
 import com.graspify.repository.UserRepository;
 import com.graspify.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -14,6 +15,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
     public String loginWithGoogle(String email, String name, String avatarUrl) {
         User user = userRepository.findByEmail(email)
@@ -52,5 +54,57 @@ public class AuthService {
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    public String signup(String name, String email, String password) {
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        }
+
+        String encodedPassword = passwordEncoder.encode(password);
+        
+        User newUser = User.builder()
+                .email(email)
+                .name(name)
+                .userPass(encodedPassword)
+                .authProvider(User.AuthProvider.LOCAL)
+                .build();
+
+        userRepository.save(newUser);
+
+        return jwtService.generateToken(newUser.getEmail(), newUser.getId(), "USER");
+    }
+
+    public String login(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+
+        if (user.getAuthProvider() != User.AuthProvider.LOCAL) {
+            throw new RuntimeException("Please use " + user.getAuthProvider().name() + " login");
+        }
+
+        if (!passwordEncoder.matches(password, user.getUserPass())) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        return jwtService.generateToken(user.getEmail(), user.getId(), "USER");
+    }
+
+    public String getEmailFromToken(String token) {
+        return jwtService.extractEmail(token);
+    }
+
+    public User updateUserProfile(String email, String name, String avatarUrl) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (name != null && !name.isEmpty()) {
+            user.setName(name);
+        }
+        if (avatarUrl != null && !avatarUrl.isEmpty()) {
+            user.setAvatarUrl(avatarUrl);
+        }
+        
+        return userRepository.save(user);
     }
 }

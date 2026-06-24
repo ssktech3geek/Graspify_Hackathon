@@ -24,10 +24,15 @@ public class StudySessionController {
             Authentication auth,
             @RequestBody Map<String, String> body) {
         try {
+            String email = auth.getName();
+            if (email == null || email.isEmpty()) {
+                return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+            }
             String subject = body.getOrDefault("subject", "General");
-            StudySession session = sessionService.startSession(auth.getName(), subject);
+            StudySession session = sessionService.startSession(email, subject);
             return ResponseEntity.ok(session);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
@@ -48,9 +53,14 @@ public class StudySessionController {
     @GetMapping
     public ResponseEntity<?> getAllSessions(Authentication auth) {
         try {
-            List<StudySession> sessions = sessionService.getAllSessions(auth.getName());
+            String email = auth.getName();
+            if (email == null || email.isEmpty()) {
+                return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+            }
+            List<StudySession> sessions = sessionService.getAllSessions(email);
             return ResponseEntity.ok(sessions);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
@@ -58,9 +68,14 @@ public class StudySessionController {
     @GetMapping("/weekly")
     public ResponseEntity<?> getWeeklySessions(Authentication auth) {
         try {
-            List<StudySession> sessions = sessionService.getWeeklySessions(auth.getName());
+            String email = auth.getName();
+            if (email == null || email.isEmpty()) {
+                return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+            }
+            List<StudySession> sessions = sessionService.getWeeklySessions(email);
             return ResponseEntity.ok(sessions);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }

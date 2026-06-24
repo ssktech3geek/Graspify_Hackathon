@@ -3,6 +3,7 @@ package com.graspify.service;
 import com.graspify.model.Canvas;
 import com.graspify.model.User;
 import com.graspify.repository.CanvasRepository;
+import com.graspify.repository.PanelRepository;
 import com.graspify.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ public class CanvasService {
 
     private final CanvasRepository canvasRepository;
     private final UserRepository userRepository;
+    private final PanelRepository panelRepository;
 
     public List<Canvas> getUserCanvases(String email) {
         User user = userRepository.findByEmail(email)
@@ -68,5 +70,19 @@ public class CanvasService {
         canvas.setDeletedAt(null);
         canvasRepository.save(canvas);
         return canvas;
+    }
+
+    public void permanentDeleteCanvas(UUID id) {
+        try {
+            Canvas canvas = getCanvasById(id);
+            panelRepository.deleteByCanvasId(id);
+            canvasRepository.delete(canvas);
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("Canvas not found")) {
+                // Canvas already deleted, ignore
+                return;
+            }
+            throw e;
+        }
     }
 }

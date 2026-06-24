@@ -106,4 +106,16 @@ public class CanvasController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
+
+    @DeleteMapping("/{id}/permanent")
+    public ResponseEntity<?> permanentDeleteCanvas(@PathVariable UUID id) {
+        try {
+            canvasService.permanentDeleteCanvas(id);
+            return ResponseEntity.ok(Map.of("message", "Canvas permanently deleted"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
 }

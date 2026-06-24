@@ -4,7 +4,7 @@ import useCanvasStore from '../store/canvasStore'
 import { useNavigate } from 'react-router-dom'
 
 function Dashboard() {
-  const { logout, user } = useAuthStore()
+  const { logout, user, isGuestLimitReached, getGuestRemainingTime, getGuestRemainingActions, incrementGuestAction } = useAuthStore()
   const {
     canvases,
     deletedCanvases,
@@ -15,6 +15,7 @@ function Dashboard() {
     createCanvas,
     deleteCanvas,
     restoreCanvas,
+    permanentDeleteCanvas,
   } = useCanvasStore()
   const navigate = useNavigate()
 
@@ -24,6 +25,8 @@ function Dashboard() {
   const [creating, setCreating] = useState(false)
   const [activeTab, setActiveTab] = useState('active')
   const [searchQuery, setSearchQuery] = useState('')
+  const [showLimitModal, setShowLimitModal] = useState(false)
+  const [guestWarningShown, setGuestWarningShown] = useState(false)
 
   const filteredCanvases = canvases.filter(c =>
     c.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -35,6 +38,21 @@ function Dashboard() {
     fetchDeletedCanvases()
   }, [])
 
+  useEffect(() => {
+    if (user?.name === 'Guest' && !guestWarningShown) {
+      const timer = setTimeout(() => {
+        setGuestWarningShown(true)
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [user, guestWarningShown])
+
+  useEffect(() => {
+    if (user?.name === 'Guest' && isGuestLimitReached()) {
+      setShowLimitModal(true)
+    }
+  }, [user, isGuestLimitReached])
+
   const handleLogout = () => {
     logout()
     navigate('/')
@@ -42,7 +60,12 @@ function Dashboard() {
 
   const handleCreate = async () => {
     if (!newTitle.trim()) return
+    if (user?.name === 'Guest' && isGuestLimitReached()) {
+      setShowLimitModal(true)
+      return
+    }
     setCreating(true)
+    incrementGuestAction()
     const canvas = await createCanvas(newTitle, newSubject)
     setCreating(false)
     if (canvas) {
@@ -64,8 +87,21 @@ function Dashboard() {
     await restoreCanvas(id)
   }
 
+  const handlePermanentDelete = async (id, e) => {
+    e.stopPropagation()
+    if (window.confirm('Permanently delete this canvas? This action cannot be undone.')) {
+      await permanentDeleteCanvas(id)
+    }
+  }
+
   const cardEmojis = ['📘', '🧪', '📐', '🌍', '💻', '🎨', '🔬', '📊']
   const getEmoji = (id) => cardEmojis[id ? id.toString().charCodeAt(0) % cardEmojis.length : 0]
+
+  const formatTime = (ms) => {
+    const minutes = Math.floor(ms / 60000)
+    const seconds = Math.floor((ms % 60000) / 1000)
+    return `${minutes}m ${seconds}s`
+  }
 
   return (
     <div style={{ fontFamily: "'Segoe UI', sans-serif", background: '#FFFDF4', minHeight: '100vh', overflow: 'hidden' }}>
@@ -94,6 +130,8 @@ function Dashboard() {
         .canvas-card-deleted:hover { transform:none; box-shadow:none; border-color:#E8E0C8; }
         .restore-btn { background:#F5F0DC; border:1px solid #E8E0C8; color:#2C2A1E; cursor:pointer; font-size:11px; font-weight:600; padding:5px 10px; border-radius:8px; transition:all 0.15s; }
         .restore-btn:hover { background:#F5C842; border-color:#F5C842; }
+        .permanent-delete-btn { background:transparent; border:1px solid #E8E0C8; color:#B0A890; cursor:pointer; font-size:11px; font-weight:600; padding:5px 10px; border-radius:8px; transition:all 0.15s; }
+        .permanent-delete-btn:hover { background:#FCEBEB; color:#E53E3E; border-color:#E53E3E; }
         .tab-btn { background:transparent; border:none; padding:10px 4px; font-size:14px; font-weight:600; color:#B0A890; cursor:pointer; display:flex; align-items:center; gap:6px; border-bottom:2px solid transparent; transition:all 0.15s; }
         .tab-btn:hover { color:#7A7560; }
         .tab-btn-active { color:#2C2A1E; border-bottom-color:#F5C842; }
@@ -253,7 +291,10 @@ function Dashboard() {
                     <div key={canvas.id} className="canvas-card canvas-card-deleted" style={{ animationDelay: `${i * 0.05}s` }}>
                       <div style={styles.cardHeader}>
                         <span className="card-emoji" style={{ fontSize: '22px', opacity: 0.5 }}>{getEmoji(canvas.id)}</span>
-                        <button className="restore-btn" onClick={(e) => handleRestore(canvas.id, e)}>↺ Restore</button>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button className="restore-btn" onClick={(e) => handleRestore(canvas.id, e)}>↺ Restore</button>
+                          <button className="permanent-delete-btn" onClick={(e) => handlePermanentDelete(canvas.id, e)}>🗑 Delete</button>
+                        </div>
                       </div>
                       <h3 style={{ ...styles.cardTitle, color: '#7A7560' }}>{canvas.title}</h3>
                       {canvas.subject && <p style={styles.cardSubject}>{canvas.subject}</p>}
@@ -283,6 +324,66 @@ function Dashboard() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Guest Limit Modal */}
+      {showLimitModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowLimitModal(false)}>
+          <div style={{ ...styles.modal, animation: 'scaleIn 0.2s ease both', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: '40px', marginBottom: '16px' }}>⏰</div>
+            <h2 style={styles.modalTitle}>Guest limit reached</h2>
+            <p style={{ fontSize: '14px', color: '#7A7560', margin: '0 0 20px', lineHeight: 1.6 }}>
+              You've reached the guest usage limit. Sign up or log in to continue using Graspify without restrictions.
+            </p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexDirection: 'column' }}>
+              <button className="btn-primary" onClick={() => navigate('/signup')} style={{ width: '100%' }}>
+                Sign up or Login
+              </button>
+              <button className="modal-cancel" onClick={() => setShowLimitModal(false)} style={{ width: '100%' }}>
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Guest Warning Banner */}
+      {user?.name === 'Guest' && guestWarningShown && !showLimitModal && (
+        <div style={{ 
+          position: 'fixed', 
+          top: '16px', 
+          right: '16px', 
+          background: '#FFFDF4', 
+          border: '2px solid #F5C842', 
+          borderRadius: '12px', 
+          padding: '16px', 
+          boxShadow: '0 4px 20px rgba(245, 200, 66, 0.3)',
+          zIndex: 1000,
+          maxWidth: '300px',
+          animation: 'fadeInUp 0.3s ease both'
+        }}>
+          <div style={{ fontSize: '18px', marginBottom: '8px' }}>🎓 Guest Session</div>
+          <div style={{ fontSize: '13px', color: '#7A7560', marginBottom: '12px' }}>
+            <div>⏱️ Time left: {formatTime(getGuestRemainingTime())}</div>
+            <div>📝 Actions left: {getGuestRemainingActions()}</div>
+          </div>
+          <button 
+            onClick={() => navigate('/signup')} 
+            style={{ 
+              width: '100%', 
+              padding: '8px 16px', 
+              background: '#F5C842', 
+              border: 'none', 
+              borderRadius: '8px', 
+              fontWeight: '600', 
+              color: '#2C2A1E', 
+              cursor: 'pointer',
+              fontSize: '13px'
+            }}
+          >
+            Sign up to continue
+          </button>
         </div>
       )}
     </div>

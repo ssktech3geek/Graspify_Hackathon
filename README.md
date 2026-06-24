@@ -11,12 +11,12 @@ Graspify is a full-stack web application that brings together everything a stude
 ### 📋 Canvas System
 - Create unlimited study canvases
 - Soft delete with full restore history — nothing is ever permanently lost
-- Inline title editing directly from the workspace
+- Permanent delete option for complete removal
 - Canvas persistence across sessions via PostgreSQL
 
 ### 🎨 Panel Workspace
 - **YouTube Panel** — embed any YouTube video directly on your canvas
-- **Notes Panel** — rich text notes with auto-save (debounced 800ms)
+- **Notes Panel** — rich text notes with auto-save
 - **PDF Panel** — upload and read PDF files without leaving your canvas
 - **AI Assistant Panel** — ask questions, get instant answers powered by Groq LLaMA
 
@@ -25,21 +25,22 @@ Graspify is a full-stack web application that brings together everything a stude
 - **Context-aware AI** — AI reads your Notes panels for smarter, contextual answers
 - Powered by **Groq's LLaMA 3.1 8B Instant** model for fast responses
 
-### 💾 Auto-Save & Crash Recovery
-- Panels auto-backup to localStorage every 30 seconds
-- Crash recovery banner on reopen — restore unsaved changes instantly
-- Save status indicator (✓ Saved / ⏳ Saving...)
+### ⏱️ Study Session Tracking
+- Global persistent timer across all pages
+- Track study sessions by subject
+- Weekly analytics to monitor progress
+- Session notes for reflection
 
-### 🖼️ Canvas UX
-- Freely **drag** panels anywhere on the canvas
-- **Resize** panels from the bottom-right corner
-- Dot grid background (Figma-style)
-- New panels spawn at offset positions to avoid overlap
+### � User Management
+- Email/Password Login & Signup
+- Google OAuth integration
+- Guest access (30 min limit, 10 actions)
+- Customizable user profiles with image upload (up to 5MB)
 
 ### 🔐 Authentication
-- JWT-based authentication
-- Guest login for instant access (no signup required)
+- JWT-based authentication with role-based access
 - Secure token storage via Zustand + localStorage
+- Guest mode for exploration (no data persistence)
 
 ---
 
@@ -49,7 +50,7 @@ Graspify is a full-stack web application that brings together everything a stude
 | Tech | Purpose |
 |------|---------|
 | React + Vite | UI framework |
-| Zustand | State management |
+| Zustand | State management with persistence |
 | React Router | Client-side routing |
 | Axios | API calls |
 | react-pdf | PDF rendering |
@@ -61,8 +62,9 @@ Graspify is a full-stack web application that brings together everything a stude
 | Java 21 | Language |
 | PostgreSQL | Database |
 | Hibernate/JPA | ORM |
+| Flyway | Database migrations |
 | JWT (JJWT) | Authentication |
-| WebFlux WebClient | External API calls |
+| Spring Security | Endpoint protection |
 | Lombok | Boilerplate reduction |
 
 ### AI
@@ -82,19 +84,24 @@ Graspify is a full-stack web application that brings together everything a stude
 - PostgreSQL 16
 - Maven
 
-### Backend Setup
-
-1. Clone the backend repo:
+### Clone the Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/graspify-backend.git
-cd graspify-backend
+git clone https://github.com/YOUR_USERNAME/graspify.git
+cd graspify
 ```
 
-2. Create PostgreSQL database:
+### Backend Setup
+
+1. Create PostgreSQL database:
 ```sql
 CREATE DATABASE graspify_db;
 CREATE USER graspify_user WITH PASSWORD 'graspify123';
 GRANT ALL PRIVILEGES ON DATABASE graspify_db TO graspify_user;
+```
+
+2. Navigate to backend directory:
+```bash
+cd graspify-backend
 ```
 
 3. Update `src/main/resources/application.properties`:
@@ -104,6 +111,9 @@ spring.datasource.username=graspify_user
 spring.datasource.password=graspify123
 groq.api.key=YOUR_GROQ_API_KEY
 gemini.api.key=YOUR_GEMINI_API_KEY
+jwt.secret=your-secret-key-here
+jwt.expiration=86400000
+cors.allowed-origins=http://localhost:5173
 ```
 
 4. Run the backend:
@@ -116,10 +126,9 @@ Backend starts at `http://localhost:8080`
 
 ### Frontend Setup
 
-1. Clone the frontend repo:
+1. Navigate to frontend directory:
 ```bash
-git clone https://github.com/YOUR_USERNAME/graspify-frontend.git
-cd graspify-frontend
+cd frontend
 ```
 
 2. Install dependencies:
@@ -137,30 +146,30 @@ Frontend starts at `http://localhost:5173`
 
 ## 📁 Project Structure
 
-### Backend
 ```
-graspify-backend/
-├── src/main/java/com/graspify/
-│   ├── config/          # Security config, CORS
-│   ├── controller/      # REST endpoints
-│   ├── model/           # JPA entities (User, Canvas, Panel)
-│   ├── repository/      # Spring Data repositories
-│   ├── security/        # JWT filter & service
-│   └── service/         # Business logic + AI service
-└── src/main/resources/
-    └── application.properties
-```
-
-### Frontend
-```
-graspify-frontend/
-├── src/
-│   ├── components/
-│   │   └── panels/      # PanelContainer, YoutubePanel, NotesPanel, AiPanel, PdfPanel
-│   ├── hooks/           # useAutoSave
-│   ├── pages/           # Login, Dashboard, CanvasWorkspace
-│   └── store/           # Zustand stores (auth, canvas, panel)
-└── index.html
+graspify/
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── panels/      # PanelContainer, YoutubePanel, NotesPanel, AiPanel, PdfPanel
+│   │   │   ├── StudyTimer.jsx
+│   │   │   └── UserProfile.jsx
+│   │   ├── hooks/           # useAutoSave
+│   │   ├── pages/           # Landing, Login, Signup, Dashboard, CanvasWorkspace, Tracker
+│   │   └── store/           # Zustand stores (auth, canvas, panel, tracker)
+│   ├── index.html
+│   └── package.json
+└── graspify-backend/
+    ├── src/main/java/com/graspify/
+    │   ├── config/          # Security config, CORS
+    │   ├── controller/      # REST endpoints (Auth, Canvas, Panel, AI, StudySession)
+    │   ├── model/           # JPA entities (User, Canvas, Panel, StudySession)
+    │   ├── repository/      # Spring Data repositories
+    │   ├── security/        # JWT filter & service
+    │   └── service/--------- # Business logic + AI service
+    └── src/main/resources/
+        ├── application.properties
+        └── db/migration/    # Flyway migrations
 ```
 
 ---
@@ -171,8 +180,12 @@ graspify-frontend/
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/auth/guest` | Guest login |
-| POST | `/api/auth/register` | Register user |
+| POST | `/api/auth/signup` | Register user |
 | POST | `/api/auth/login` | Login |
+| POST | `/api/auth/google` | Google OAuth |
+| GET | `/api/auth/profile` | Get user profile |
+| PUT | `/api/auth/profile` | Update user profile |
+| POST | `/api/auth/profile/avatar` | Upload profile image |
 
 ### Canvases
 | Method | Endpoint | Description |
@@ -184,6 +197,7 @@ graspify-frontend/
 | DELETE | `/api/canvases/:id` | Soft delete canvas |
 | GET | `/api/canvases/deleted` | Get deleted canvases |
 | POST | `/api/canvases/:id/restore` | Restore deleted canvas |
+| DELETE | `/api/canvases/:id/permanent` | Permanently delete canvas |
 
 ### Panels
 | Method | Endpoint | Description |
@@ -192,6 +206,14 @@ graspify-frontend/
 | POST | `/api/canvases/:id/panels` | Create panel |
 | PUT | `/api/panels/:id` | Update panel position/content |
 | DELETE | `/api/panels/:id` | Delete panel |
+
+### Study Sessions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/study-sessions/start` | Start study session |
+| POST | `/api/study-sessions/end` | End study session |
+| GET | `/api/study-sessions` | Get all sessions |
+| GET | `/api/study-sessions/weekly` | Get weekly sessions |
 
 ### AI
 | Method | Endpoint | Description |
@@ -202,11 +224,13 @@ graspify-frontend/
 
 ## 🎯 Hackathon Highlights
 
-This project was built for a hackathon with a focus on two differentiating features:
+This project was built for a hackathon with a focus on differentiating features:
 
 1. **Highlight-to-Ask AI** — the ability to select any text on the canvas and get an instant AI explanation with a single click, without leaving your workflow.
 
-2. **Auto-save + Crash Recovery** — a localStorage-backed backup system that saves your canvas state every 30 seconds and offers a one-click restore if the browser crashes.
+2. **Study Session Tracking** — a global persistent timer that tracks study time across all pages with weekly analytics.
+
+3. **User Profile Management** — customizable profiles with image upload and Google OAuth integration.
 
 ---
 
@@ -216,7 +240,7 @@ This project was built for a hackathon with a focus on two differentiating featu
 
 ---
 
-## 👨‍💻 Author
+## 👨‍💻 Authors
 
 Built with ☕ and mild panic by **Siddharth**
 

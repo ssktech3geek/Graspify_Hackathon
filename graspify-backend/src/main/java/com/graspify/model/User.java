@@ -28,6 +28,9 @@ public class User {
     @Column(name = "avatar_url")
     private String avatarUrl;
 
+    @Column(name = "user_pass")
+    private String userPass;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "auth_provider")
     private AuthProvider authProvider;
@@ -39,7 +42,7 @@ public class User {
     private LocalDateTime updatedAt;
 
     public enum AuthProvider {
-        GOOGLE, GUEST
+        GOOGLE, GUEST, LOCAL
     }
 
     @PrePersist

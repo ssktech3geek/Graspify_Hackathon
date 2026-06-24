@@ -1,9 +1,11 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useTrackerStore from '../store/trackerStore'
+import useAuthStore from '../store/authStore'
 
 function Tracker() {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const { sessions, weeklySessions, activeSession, fetchSessions, fetchWeeklySessions, startSession, endSession } = useTrackerStore()
 
   const [subject, setSubject] = useState('')
@@ -13,9 +15,12 @@ function Tracker() {
   const timerRef = useRef(null)
 
   useEffect(() => {
+    if (user?.name === 'Guest') {
+      return
+    }
     fetchSessions()
     fetchWeeklySessions()
-  }, [])
+  }, [user])
 
   useEffect(() => {
     if (activeSession) {
@@ -73,6 +78,9 @@ function Tracker() {
   const maxMinutes = Math.max(...getWeekDays().map(d => d.minutes), 60)
 
   const handleStart = async () => {
+    if (user?.name === 'Guest') {
+      return
+    }
     if (!subject.trim()) {
       alert('Please enter a subject first!')
       return
@@ -102,8 +110,78 @@ function Tracker() {
         .session-row:last-child { border-bottom:none; }
       `}</style>
 
+      {/* Guest Notification */}
+      {user?.name === 'Guest' && (
+        <>
+          <div style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0,
+            background: 'rgba(44, 42, 30, 0.5)',
+            zIndex: 999
+          }} />
+          <div style={{ 
+            position: 'fixed', 
+            top: '30%', 
+            left: '35%', 
+            transform: 'translate(-50%, -50%)',
+            background: '#FFFDF4', 
+            border: '2px solid #F5C842', 
+            borderRadius: '16px', 
+            padding: '32px', 
+            boxShadow: '0 8px 32px rgba(245, 200, 66, 0.3)',
+            zIndex: 1000,
+            maxWidth: '400px',
+            textAlign: 'center',
+            animation: 'fadeInUp 0.3s ease both'
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📚</div>
+            <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#2C2A1E', margin: '0 0 12px' }}>Study Tracker</h2>
+            <p style={{ fontSize: '14px', color: '#7A7560', margin: '0 0 24px', lineHeight: 1.6 }}>
+              Track your study sessions, build a streak, and view your weekly timetable. Sign up to access this feature!
+            </p>
+            <button 
+              onClick={() => navigate('/signup')}
+              style={{ 
+                width: '100%', 
+                padding: '14px 24px', 
+                background: '#F5C842', 
+                border: 'none', 
+                borderRadius: '12px', 
+                fontWeight: '700', 
+                color: '#2C2A1E', 
+                cursor: 'pointer',
+                fontSize: '15px',
+                boxShadow: '0 4px 0 #D4A800'
+              }}
+            >
+              Sign up to continue
+            </button>
+            <button 
+              onClick={() => navigate('/dashboard')}
+              style={{ 
+                width: '100%', 
+                padding: '12px 24px', 
+                background: 'transparent', 
+                border: '1.5px solid #E8E0C8', 
+                borderRadius: '12px', 
+                fontWeight: '600', 
+                color: '#7A7560', 
+                cursor: 'pointer',
+                fontSize: '14px',
+                marginTop: '12px'
+              }}
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        </>
+      )}
+
       {/* Header */}
-      <div style={{ background: '#F5F0DC', borderBottom: '1px solid #E8E0C8', padding: '16px 32px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ background: '#F5F0DC', borderBottom: '1px solid #E8E0C8', padding: '16px 32px', display: 'flex', alignItems: 'center', gap: '16px', opacity: user?.name === 'Guest' ? 0.5 : 1, pointerEvents: user?.name === 'Guest' ? 'none' : 'auto' }}>
         <button onClick={() => navigate('/dashboard')} style={{ background: 'transparent', border: '1.5px solid #E8E0C8', borderRadius: '10px', padding: '8px 16px', cursor: 'pointer', fontSize: '14px', color: '#2C2A1E' }}>
           ← Dashboard
         </button>
@@ -129,31 +207,6 @@ function Tracker() {
               <div style={{ fontSize: '11px', color: '#B0A890', marginTop: '2px' }}>{stat.sub}</div>
             </div>
           ))}
-        </div>
-
-        {/* Weekly bar chart */}
-        <div style={{ background: '#fff', border: '1.5px solid #E8E0C8', borderRadius: '16px', padding: '24px', marginBottom: '32px' }}>
-          <h2 style={{ margin: '0 0 20px', fontSize: '15px', fontWeight: '700', color: '#2C2A1E' }}>📊 This week</h2>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '120px' }}>
-            {weekDays.map((day, i) => (
-              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', height: '100%', justifyContent: 'flex-end' }}>
-                <div style={{ fontSize: '10px', color: '#7A7560' }}>
-                  {day.minutes > 0 ? formatDuration(day.minutes) : ''}
-                </div>
-                <div style={{
-                  width: '100%',
-                  height: `${Math.max(4, (day.minutes / maxMinutes) * 90)}px`,
-                  background: day.isToday ? '#F5C842' : day.minutes > 0 ? '#F5E090' : '#F5F0DC',
-                  borderRadius: '6px 6px 0 0',
-                  transition: 'height 0.5s ease',
-                  border: day.isToday ? '2px solid #D4A800' : 'none',
-                }} />
-                <div style={{ fontSize: '11px', fontWeight: day.isToday ? '700' : '400', color: day.isToday ? '#2C2A1E' : '#7A7560' }}>
-                  {day.label}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Timer */}
@@ -206,7 +259,7 @@ function Tracker() {
         </div>
 
         {/* Session history */}
-        <div style={{ background: '#fff', border: '1.5px solid #E8E0C8', borderRadius: '16px', padding: '24px' }}>
+        <div style={{ background: '#fff', border: '1.5px solid #E8E0C8', borderRadius: '16px', padding: '24px', marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <h2 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#2C2A1E' }}>📋 Session History</h2>
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -286,6 +339,31 @@ function Tracker() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Weekly Timetable - at the bottom */}
+        <div style={{ background: '#fff', border: '1.5px solid #E8E0C8', borderRadius: '16px', padding: '24px' }}>
+          <h2 style={{ margin: '0 0 20px', fontSize: '15px', fontWeight: '700', color: '#2C2A1E' }}>📅 Weekly Timetable</h2>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '120px' }}>
+            {weekDays.map((day, i) => (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', height: '100%', justifyContent: 'flex-end' }}>
+                <div style={{ fontSize: '10px', color: '#7A7560' }}>
+                  {day.minutes > 0 ? formatDuration(day.minutes) : ''}
+                </div>
+                <div style={{
+                  width: '100%',
+                  height: `${Math.max(4, (day.minutes / maxMinutes) * 90)}px`,
+                  background: day.isToday ? '#F5C842' : day.minutes > 0 ? '#F5E090' : '#F5F0DC',
+                  borderRadius: '6px 6px 0 0',
+                  transition: 'height 0.5s ease',
+                  border: day.isToday ? '2px solid #D4A800' : 'none',
+                }} />
+                <div style={{ fontSize: '11px', fontWeight: day.isToday ? '700' : '400', color: day.isToday ? '#2C2A1E' : '#7A7560' }}>
+                  {day.label}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
