@@ -13,6 +13,8 @@ graspify-backend/mvnw.cmd
 graspify-backend/.settings/
 graspify-backend/.classpath
 graspify-backend/.project
+graspify-backend/src/main/resources/application.properties
+graspify-backend/src/main/resources/application-*.properties
 
 # IDE
 .vscode/
