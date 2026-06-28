@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN subscription_type VARCHAR(20) DEFAULT 'FREE';
