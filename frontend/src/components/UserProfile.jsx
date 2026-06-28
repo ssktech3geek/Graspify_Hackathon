@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import useAuthStore from '../store/authStore'
+import useThemeStore from '../store/themeStore'
 
 function UserProfile() {
   const { user, token, logout } = useAuthStore()
+  const { theme, toggleTheme } = useThemeStore()
   const [isOpen, setIsOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [profile, setProfile] = useState({ name: '', avatarUrl: '' })
@@ -109,19 +111,19 @@ function UserProfile() {
           width: '42px',
           height: '42px',
           borderRadius: '50%',
-          background: profile.avatarUrl ? `url(${profile.avatarUrl}) center/cover` : '#F5C842',
-          border: '2px solid #E8E0C8',
+          background: profile.avatarUrl ? `url(${profile.avatarUrl}) center/cover` : 'var(--accent)',
+          border: '2px solid var(--border)',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: '16px',
           fontWeight: '700',
-          color: '#2C2A1E',
+          color: 'var(--text-primary)',
           transition: 'all 0.2s',
         }}
-        onMouseEnter={(e) => e.target.style.borderColor = '#F5C842'}
-        onMouseLeave={(e) => e.target.style.borderColor = '#E8E0C8'}
+        onMouseEnter={(e) => e.target.style.borderColor = 'var(--accent)'}
+        onMouseLeave={(e) => e.target.style.borderColor = 'var(--border)'}
       >
         {!profile.avatarUrl && getInitials(profile.name || user.name)}
       </button>
@@ -143,12 +145,12 @@ function UserProfile() {
             position: 'absolute',
             top: '52px',
             right: 0,
-            background: '#FFFDF4',
-            border: '1.5px solid #E8E0C8',
+            background: 'var(--bg-primary)',
+            border: '1.5px solid var(--border)',
             borderRadius: '12px',
             padding: '16px',
             minWidth: '280px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+            boxShadow: '0 8px 24px var(--shadow)',
             zIndex: 1000,
             animation: 'fadeInUp 0.2s ease both'
           }}>
@@ -163,44 +165,65 @@ function UserProfile() {
                     width: '56px',
                     height: '56px',
                     borderRadius: '50%',
-                    background: profile.avatarUrl ? `url(${profile.avatarUrl}) center/cover` : '#F5C842',
-                    border: '2px solid #E8E0C8',
+                    background: profile.avatarUrl ? `url(${profile.avatarUrl}) center/cover` : 'var(--accent)',
+                    border: '2px solid var(--border)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: '20px',
                     fontWeight: '700',
-                    color: '#2C2A1E'
+                    color: 'var(--text-primary)'
                   }}>
                     {!profile.avatarUrl && getInitials(profile.name || user.name)}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '16px', fontWeight: '700', color: '#2C2A1E' }}>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }}>
                       {profile.name || user.name}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#7A7560' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                       {user.email}
                     </div>
                   </div>
                 </div>
 
                 <button
-                  onClick={() => setIsEditing(true)}
+                  onClick={toggleTheme}
                   style={{
                     width: '100%',
                     padding: '10px 16px',
-                    background: '#F5F0DC',
+                    background: theme === 'dark' ? '#2C2A1E' : '#F5F0DC',
                     border: '1.5px solid #E8E0C8',
                     borderRadius: '8px',
                     fontSize: '13px',
                     fontWeight: '600',
-                    color: '#2C2A1E',
+                    color: theme === 'dark' ? '#FFFDF4' : '#2C2A1E',
                     cursor: 'pointer',
                     marginBottom: '8px',
                     transition: 'all 0.15s'
                   }}
-                  onMouseEnter={(e) => e.target.style.background = '#F5C842'}
-                  onMouseLeave={(e) => e.target.style.background = '#F5F0DC'}
+                  onMouseEnter={(e) => e.target.style.background = theme === 'dark' ? '#3D3B2F' : '#F5C842'}
+                  onMouseLeave={(e) => e.target.style.background = theme === 'dark' ? '#2C2A1E' : '#F5F0DC'}
+                >
+                  {theme === 'light' ? '🌙 Dark Mode' : '☀ Light Mode'}
+                </button>
+
+                <button
+                  onClick={() => setIsEditing(true)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 16px',
+                    background: 'var(--bg-secondary)',
+                    border: '1.5px solid var(--border)',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                    marginBottom: '8px',
+                    transition: 'all 0.15s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.background = 'var(--accent)'}
+                  onMouseLeave={(e) => e.target.style.background = 'var(--bg-secondary)'}
                 >
                   ✏ Edit Profile
                 </button>
@@ -211,11 +234,11 @@ function UserProfile() {
                     width: '100%',
                     padding: '10px 16px',
                     background: 'transparent',
-                    border: '1.5px solid #E8E0C8',
+                    border: '1.5px solid var(--border)',
                     borderRadius: '8px',
                     fontSize: '13px',
                     fontWeight: '600',
-                    color: '#7A7560',
+                    color: 'var(--text-secondary)',
                     cursor: 'pointer',
                     transition: 'all 0.15s'
                   }}
@@ -226,8 +249,8 @@ function UserProfile() {
                   }}
                   onMouseLeave={(e) => {
                     e.target.style.background = 'transparent'
-                    e.target.style.borderColor = '#E8E0C8'
-                    e.target.style.color = '#7A7560'
+                    e.target.style.borderColor = 'var(--border)'
+                    e.target.style.color = 'var(--text-secondary)'
                   }}
                 >
                   🚪 Logout
@@ -235,12 +258,12 @@ function UserProfile() {
               </>
             ) : (
               <>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#2C2A1E', marginBottom: '12px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '12px' }}>
                   Edit Profile
                 </div>
 
                 <div style={{ marginBottom: '12px' }}>
-                  <label style={{ fontSize: '12px', color: '#7A7560', marginBottom: '4px', display: 'block' }}>
+                  <label style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px', display: 'block' }}>
                     Name
                   </label>
                   <input
@@ -250,18 +273,20 @@ function UserProfile() {
                     style={{
                       width: '100%',
                       padding: '8px 12px',
-                      border: '1.5px solid #E8E0C8',
+                      border: '1.5px solid var(--border)',
                       borderRadius: '8px',
                       fontSize: '13px',
                       outline: 'none',
                       boxSizing: 'border-box',
-                      fontFamily: 'inherit'
+                      fontFamily: 'inherit',
+                      background: 'var(--bg-primary)',
+                      color: 'var(--text-primary)'
                     }}
                   />
                 </div>
 
                 <div style={{ marginBottom: '12px' }}>
-                  <label style={{ fontSize: '12px', color: '#7A7560', marginBottom: '4px', display: 'block' }}>
+                  <label style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px', display: 'block' }}>
                     Profile Picture
                   </label>
                   <input
@@ -278,12 +303,12 @@ function UserProfile() {
                       display: 'block',
                       width: '100%',
                       padding: '10px 16px',
-                      background: uploading ? '#F5F0DC' : '#F5C842',
-                      border: '1.5px solid #E8E0C8',
+                      background: uploading ? 'var(--bg-secondary)' : 'var(--accent)',
+                      border: '1.5px solid var(--border)',
                       borderRadius: '8px',
                       fontSize: '13px',
                       fontWeight: '600',
-                      color: '#2C2A1E',
+                      color: 'var(--text-primary)',
                       cursor: uploading ? 'not-allowed' : 'pointer',
                       textAlign: 'center',
                       boxSizing: 'border-box',
@@ -291,16 +316,16 @@ function UserProfile() {
                       opacity: uploading ? 0.6 : 1
                     }}
                     onMouseEnter={(e) => {
-                      if (!uploading) e.target.style.background = '#F5C842'
+                      if (!uploading) e.target.style.background = 'var(--accent)'
                     }}
                     onMouseLeave={(e) => {
-                      if (!uploading) e.target.style.background = '#F5F0DC'
+                      if (!uploading) e.target.style.background = 'var(--bg-secondary)'
                     }}
                   >
                     {uploading ? 'Uploading...' : 'Change profile'}
                   </label>
                   {uploading && (
-                    <div style={{ fontSize: '11px', color: '#7A7560', marginTop: '4px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', textAlign: 'center' }}>
                       Please wait...
                     </div>
                   )}
@@ -324,11 +349,11 @@ function UserProfile() {
                       flex: 1,
                       padding: '8px 12px',
                       background: 'transparent',
-                      border: '1.5px solid #E8E0C8',
+                      border: '1.5px solid var(--border)',
                       borderRadius: '8px',
                       fontSize: '13px',
                       fontWeight: '600',
-                      color: '#7A7560',
+                      color: 'var(--text-secondary)',
                       cursor: loading || uploading ? 'not-allowed' : 'pointer',
                       opacity: loading || uploading ? 0.6 : 1
                     }}
@@ -341,12 +366,12 @@ function UserProfile() {
                     style={{
                       flex: 1,
                       padding: '8px 12px',
-                      background: '#F5C842',
+                      background: 'var(--accent)',
                       border: 'none',
                       borderRadius: '8px',
                       fontSize: '13px',
                       fontWeight: '600',
-                      color: '#2C2A1E',
+                      color: 'var(--text-primary)',
                       cursor: loading || uploading ? 'not-allowed' : 'pointer',
                       opacity: loading || uploading ? 0.6 : 1
                     }}
