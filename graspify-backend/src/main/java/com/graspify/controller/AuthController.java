@@ -13,7 +13,7 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
 
-    private final AuthService authService;
+    private final AuthService authService = null;
 
     @PostMapping("/google")
     public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> body) {
@@ -114,16 +114,11 @@ public class AuthController {
 
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile(
-            @RequestHeader("Authorization") String authHeader) {
+            @RequestHeader("Authorization") String authHeader, Map<String, Object> of) {
         try {
             String email = authService.getEmailFromToken(authHeader.substring(7));
             var user = authService.getUserByEmail(email);
-            return ResponseEntity.ok(Map.of(
-                "name", user.getName(),
-                "email", user.getEmail(),
-                "avatarUrl", user.getAvatarUrl(),
-                "createdAt", user.getCreatedAt()
-            ));
+            return ResponseEntity.ok(of);
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                     .body(Map.of("error", e.getMessage()));
@@ -133,18 +128,14 @@ public class AuthController {
     @PutMapping("/profile")
     public ResponseEntity<?> updateProfile(
             @RequestHeader("Authorization") String authHeader,
-            @RequestBody Map<String, String> body) {
+            @RequestBody Map<String, String> body, String avatarUrl2, Map<String, String> of) {
         try {
             String email = authService.getEmailFromToken(authHeader.substring(7));
             String name = body.get("name");
             String avatarUrl = body.get("avatarUrl");
             
             var user = authService.updateUserProfile(email, name, avatarUrl);
-            return ResponseEntity.ok(Map.of(
-                "name", user.getName(),
-                "email", user.getEmail(),
-                "avatarUrl", user.getAvatarUrl()
-            ));
+            return ResponseEntity.ok(of);
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                     .body(Map.of("error", e.getMessage()));
@@ -154,7 +145,7 @@ public class AuthController {
     @PostMapping("/profile/avatar")
     public ResponseEntity<?> uploadAvatar(
             @RequestHeader("Authorization") String authHeader,
-            @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file, String avatarUrl) {
         try {
             String email = authService.getEmailFromToken(authHeader.substring(7));
             
@@ -165,7 +156,7 @@ public class AuthController {
             
             var user = authService.updateUserProfile(email, null, dataUrl);
             return ResponseEntity.ok(Map.of(
-                "avatarUrl", user.getAvatarUrl()
+                "avatarUrl", avatarUrl
             ));
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
