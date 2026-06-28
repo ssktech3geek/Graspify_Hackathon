@@ -12,7 +12,7 @@ function Landing() {
 
   const handleGuest = async () => {
     await guestLogin()
-    navigate('/dashboard')
+    navigate('/dashboard', { state: { fromLanding: true } })
   }
 
   const handleAuth = () => {

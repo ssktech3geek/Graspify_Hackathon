@@ -55,6 +55,39 @@ function SignUp() {
       ))}
 
       <div style={{ width:'100%', maxWidth:'400px', animation:'fadeInUp 0.5s ease both', position:'relative', zIndex:2 }}>
+        <button 
+          onClick={() => navigate('/')}
+          style={{ 
+            position: 'absolute', 
+            top: '-60px', 
+            left: '0', 
+            background: 'transparent', 
+            border: '1.5px solid #E8E0C8', 
+            borderRadius: '10px', 
+            padding: '10px 16px', 
+            fontSize: '14px', 
+            fontWeight: '600', 
+            color: '#7A7560', 
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = '#F5F0DC'
+            e.target.style.borderColor = '#D8D0B8'
+            e.target.style.color = '#2C2A1E'
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'transparent'
+            e.target.style.borderColor = '#E8E0C8'
+            e.target.style.color = '#7A7560'
+          }}
+        >
+          ← Back
+        </button>
+
         <div style={{ textAlign:'center', marginBottom:'32px' }}>
           <div style={{ width:'56px', height:'56px', background:'#F5C842', borderRadius:'14px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'800', color:'#2C2A1E', fontSize:'24px', margin:'0 auto 20px' }}>G</div>
           <h1 style={{ fontSize:'28px', fontWeight:'800', color:'#2C2A1E', margin:'0 0 8px' }}>Create your account</h1>
@@ -89,8 +122,12 @@ function SignUp() {
           />
 
           {error && (
-            <div style={{ background:'#FCEBEB', border:'1px solid #E53E3E', borderRadius:'10px', padding:'12px', fontSize:'13px', color:'#C53030', marginBottom:'16px' }}>
-              {error}
+            <div style={{ background:'#FCEBEB', border:'1.5px solid #E53E3E', borderRadius:'12px', padding:'14px 16px', fontSize:'13px', color:'#C53030', marginBottom:'16px', display:'flex', alignItems:'flex-start', gap:'10px' }}>
+              <span style={{ fontSize:'16px' }}>⚠️</span>
+              <div>
+                <div style={{ fontWeight:'600', marginBottom:'4px' }}>Sign up failed</div>
+                <div>{error}</div>
+              </div>
             </div>
           )}
 

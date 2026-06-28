@@ -9,7 +9,7 @@ const useAuthStore = create(
       loading: false,
       guestSessionStart: null,
       guestActionCount: 0,
-      GUEST_TIME_LIMIT: 30 * 60 * 1000, // 30 minutes in milliseconds
+      GUEST_TIME_LIMIT: 60 * 60 * 1000, // 60 minutes (1 hour) in milliseconds
       GUEST_ACTION_LIMIT: 10, // 10 actions
 
       setToken: (token, user = null) => {

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import useAuthStore from '../store/authStore'
 import useCanvasStore from '../store/canvasStore'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 function Dashboard() {
-  const { logout, user, isGuestLimitReached, getGuestRemainingTime, getGuestRemainingActions, incrementGuestAction } = useAuthStore()
+  const { logout, user, isGuestLimitReached, getGuestRemainingTime, getGuestRemainingActions, incrementGuestAction, checkCanvasLimit, canvasLimit, currentCanvasCount } = useAuthStore()
   const {
     canvases,
     deletedCanvases,
@@ -18,6 +18,7 @@ function Dashboard() {
     permanentDeleteCanvas,
   } = useCanvasStore()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [showModal, setShowModal] = useState(false)
   const [newTitle, setNewTitle] = useState('')
@@ -27,6 +28,9 @@ function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showLimitModal, setShowLimitModal] = useState(false)
   const [guestWarningShown, setGuestWarningShown] = useState(false)
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
+  const [limitInfo, setLimitInfo] = useState(null)
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   const filteredCanvases = canvases.filter(c =>
     c.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -36,7 +40,23 @@ function Dashboard() {
   useEffect(() => {
     fetchCanvases()
     fetchDeletedCanvases()
-  }, [])
+    checkCanvasLimit()
+    
+    // Show onboarding logic:
+    // - For registered users: show only once (based on localStorage)
+    // - For guest users: show only when navigating from landing page
+    const isGuest = user?.name === 'Guest'
+    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding')
+    const fromLanding = location.state?.fromLanding
+    
+    if (isGuest && fromLanding) {
+      // Show onboarding for guest users only when coming from landing page
+      setShowOnboarding(true)
+    } else if (!isGuest && !hasSeenOnboarding) {
+      // Show only once for registered users
+      setShowOnboarding(true)
+    }
+  }, [user, location.state])
 
   useEffect(() => {
     if (user?.name === 'Guest' && !guestWarningShown) {
@@ -145,16 +165,57 @@ function Dashboard() {
         .spinner { width:14px; height:14px; border:2px solid rgba(44,42,30,0.25); border-top-color:#2C2A1E; border-radius:50%; animation:spin 0.6s linear infinite; }
         .search-input { width:100%; padding:10px 40px 10px 16px; border:1.5px solid #E8E0C8; border-radius:12px; font-size:14px; outline:none; box-sizing:border-box; font-family:inherit; background:#fff; transition:border-color 0.2s; }
         .search-input:focus { border-color:#F5C842; }
+        
+        @media (max-width: 768px) {
+          .dashboard-sidebar {
+            width: 100% !important;
+            padding: 12px 16px !important;
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 100 !important;
+            border-top: 1px solid #E8E0C8 !important;
+            border-right: none !important;
+            flex-direction: row !important;
+            justify-content: space-around !important;
+            align-items: center !important;
+          }
+          .dashboard-main {
+            padding: 20px !important;
+            padding-bottom: 100px !important;
+          }
+          .dashboard-heading {
+            font-size: 24px !important;
+          }
+          .dashboard-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .dashboard-modal {
+            width: 90% !important;
+            max-width: 350px !important;
+            padding: 20px !important;
+          }
+          .logo-text {
+            display: none !important;
+          }
+          .sidebar-footer {
+            display: none !important;
+          }
+          .user-chip {
+            display: none !important;
+          }
+        }
       `}</style>
 
       <div style={{ display: 'flex', minHeight: '100vh', position: 'relative' }}>
         <div style={{ position: 'absolute', width: '320px', height: '320px', borderRadius: '50%', background: '#F5C842', top: '-100px', left: '-120px', opacity: 0.06, animation: 'bgPulse 7s ease-in-out infinite', pointerEvents: 'none' }} />
 
         {/* Sidebar */}
-        <div style={styles.sidebar}>
+        <div style={styles.sidebar} className="dashboard-sidebar">
           <div style={styles.logoArea}>
             <div style={styles.logo}>G</div>
-            <span style={styles.logoText}>Graspify</span>
+            <span style={styles.logoText} className="logo-text">Graspify</span>
           </div>
 
           <button className="new-canvas-btn" onClick={() => setShowModal(true)}>
@@ -165,20 +226,33 @@ function Dashboard() {
             📚 Study Tracker
           </button>
 
+          <button 
+            className="tracker-btn" 
+            onClick={() => navigate('/subscription')}
+            style={{ 
+              background: 'linear-gradient(135deg, #F5C842 0%, #E5B832 100%)',
+              color: '#2C2A1E',
+              border: 'none',
+              fontWeight: '700'
+            }}
+          >
+            ⭐ Upgrade Plan
+          </button>
+
           {user?.name && (
-            <div style={styles.userChip}>
+            <div style={styles.userChip} className="user-chip">
               <div style={styles.userAvatar}>{(user.name || 'G')[0].toUpperCase()}</div>
               <span style={{ fontSize: '13px', color: '#7A7560', fontWeight: '500' }}>{user.name}</span>
             </div>
           )}
 
-          <div style={styles.sidebarFooter}>
+          <div style={styles.sidebarFooter} className="sidebar-footer">
             <button className="logout-btn" onClick={handleLogout}>Logout</button>
           </div>
         </div>
 
         {/* Main content */}
-        <div style={styles.main}>
+        <div style={styles.main} className="dashboard-main">
           {[
             { top: '8%', left: '85%', size: 6, dur: '4s', delay: '0s' },
             { top: '40%', left: '95%', size: 8, dur: '5s', delay: '1s' },
@@ -193,7 +267,7 @@ function Dashboard() {
                 <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F5C842', animation: 'pulse 1.5s ease-in-out infinite' }} />
                 {canvases.length} active · {deletedCanvases.length} deleted
               </div>
-              <h1 style={styles.heading}>
+              <h1 style={styles.heading} className="dashboard-heading">
                 {activeTab === 'active' ? 'Your canvases' : 'Deleted canvases'}
               </h1>
             </div>
@@ -252,7 +326,7 @@ function Dashboard() {
               )}
 
               {!loading && filteredCanvases.length > 0 && (
-                <div style={styles.grid}>
+                <div style={styles.grid} className="dashboard-grid">
                   {filteredCanvases.map((canvas, i) => (
                     <div key={canvas.id} className="canvas-card" style={{ animationDelay: `${i * 0.05}s` }} onClick={() => navigate(`/canvas/${canvas.id}`)}>
                       <div style={styles.cardHeader}>
@@ -310,7 +384,7 @@ function Dashboard() {
 
       {showModal && (
         <div style={styles.modalOverlay} onClick={() => !creating && setShowModal(false)}>
-          <div style={{ ...styles.modal, animation: 'scaleIn 0.2s ease both' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ ...styles.modal, animation: 'scaleIn 0.2s ease both' }} className="dashboard-modal" onClick={(e) => e.stopPropagation()}>
             <div style={{ fontSize: '28px', marginBottom: '8px' }}>✨</div>
             <h2 style={styles.modalTitle}>Create new canvas</h2>
             <p style={{ fontSize: '13px', color: '#7A7560', margin: '0 0 18px' }}>Give it a name — you can add YouTube, notes, AI and PDFs once it's created.</p>
@@ -365,7 +439,7 @@ function Dashboard() {
         }}>
           <div style={{ fontSize: '18px', marginBottom: '8px' }}>🎓 Guest Session</div>
           <div style={{ fontSize: '13px', color: '#7A7560', marginBottom: '12px' }}>
-            <div>⏱️ Time left: {formatTime(getGuestRemainingTime())}</div>
+            <div>⏱️ Time left: {formatTime(getGuestRemainingTime())} (1 hour session)</div>
             <div>📝 Actions left: {getGuestRemainingActions()}</div>
           </div>
           <button 
@@ -384,6 +458,60 @@ function Dashboard() {
           >
             Sign up to continue
           </button>
+        </div>
+      )}
+
+      {/* Onboarding Modal */}
+      {showOnboarding && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(44, 42, 30, 0.7)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: '#FFFDF4', borderRadius: '20px', padding: '40px', maxWidth: '500px', width: '100%', animation: 'scaleIn 0.3s ease both', position: 'relative' }}>
+            <button 
+              onClick={() => {
+                setShowOnboarding(false)
+                localStorage.setItem('hasSeenOnboarding', 'true')
+              }}
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', fontSize: '24px', color: '#7A7560', cursor: 'pointer', padding: '4px' }}
+            >
+              ×
+            </button>
+
+            <div>
+              <div style={{ fontSize: '48px', marginBottom: '20px', textAlign: 'center' }}>🎉</div>
+              <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#2C2A1E', marginBottom: '12px', textAlign: 'center' }}>Welcome to Graspify!</h2>
+              <p style={{ fontSize: '15px', color: '#7A7560', lineHeight: 1.6, textAlign: 'center', marginBottom: '24px' }}>
+                Your smarter study companion. Create canvases, add panels, and get AI-powered help to learn faster.
+              </p>
+              <div style={{ background: '#F5F0DC', borderRadius: '12px', padding: '16px', marginBottom: '24px' }}>
+                <div style={{ fontSize: '14px', color: '#2C2A1E', fontWeight: '600', marginBottom: '8px' }}>✨ Quick Start:</div>
+                <div style={{ fontSize: '13px', color: '#7A7560', lineHeight: 1.8 }}>
+                  • Click <strong>"+ New canvas"</strong> to create<br/>
+                  • Add panels for notes, videos, PDFs<br/>
+                  • Ask AI questions about your content
+                </div>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => {
+                setShowOnboarding(false)
+                localStorage.setItem('hasSeenOnboarding', 'true')
+              }}
+              style={{ 
+                width: '100%',
+                padding: '14px 32px', 
+                background: '#F5C842', 
+                border: 'none', 
+                borderRadius: '12px', 
+                fontWeight: '700', 
+                color: '#2C2A1E', 
+                cursor: 'pointer',
+                fontSize: '15px',
+                boxShadow: '0 4px 0 #D4A800'
+              }}
+            >
+              Get Started
+            </button>
+          </div>
         </div>
       )}
     </div>
