@@ -1,10 +1,11 @@
 import useAuthStore from '../store/authStore'
 import { useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 function Landing() {
   const { guestLogin, token } = useAuthStore()
   const navigate = useNavigate()
+  const [isDarkMode, setIsDarkMode] = useState(false)
 
   useEffect(() => {
     if (token) navigate('/dashboard')
@@ -19,8 +20,29 @@ function Landing() {
     navigate('/login')
   }
 
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode)
+  }
+
+  // Theme colors
+  const theme = {
+    background: isDarkMode ? '#1a1a2e' : '#FFFDF4',
+    text: isDarkMode ? '#eaeaea' : '#2C2A1E',
+    secondaryText: isDarkMode ? '#a0a0a0' : '#7A7560',
+    cardBg: isDarkMode ? '#16213e' : '#fff',
+    border: isDarkMode ? '#2a2a4a' : '#E8E0C8',
+    accent: '#F5C842',
+    accentHover: '#D4A800',
+    ctaBg: isDarkMode ? '#0f0f23' : '#2C2A1E',
+    ctaText: isDarkMode ? '#eaeaea' : '#FFFDF4',
+    sectionBg: isDarkMode ? '#121225' : '#F5F0DC',
+    buttonBorder: isDarkMode ? '#F5C842' : '#E8E0C8',
+    buttonBorderHover: isDarkMode ? 'rgba(245,200,66,0.2)' : '#F5F0DC',
+    buttonText: isDarkMode ? '#F5C842' : '#2C2A1E',
+  }
+
   return (
-    <div style={{ fontFamily: "'Segoe UI', sans-serif", background: '#FFFDF4', minHeight: '100vh', overflowX: 'hidden' }}>
+    <div style={{ fontFamily: "'Segoe UI', sans-serif", background: theme.background, minHeight: '100vh', overflowX: 'hidden', transition: 'background 0.3s ease' }}>
       <style>{`
         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
         @keyframes floatDelay { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
@@ -39,6 +61,13 @@ function Landing() {
         @keyframes exclaim { 0%,100%{transform:scale(1) translateY(0)} 50%{transform:scale(1.3) translateY(-4px)} }
         @keyframes bgPulse { 0%,100%{transform:scale(1);opacity:0.06} 50%{transform:scale(1.05);opacity:0.1} }
         @keyframes slideIn { from{width:0} to{width:100%} }
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        @keyframes slideInLeft { from{opacity:0;transform:translateX(-40px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes slideInRight { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes quoteFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        @keyframes shimmer { 0%{backgroundPosition:-200% 0} 100%{backgroundPosition:200% 0} }
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        @keyframes glow { from{box-shadow:0 0 20px rgba(245,200,66,0.3)} to{box-shadow:0 0 40px rgba(245,200,66,0.6)} }
         .btn-primary { padding:14px 32px; background:#F5C842; border:none; border-radius:14px; font-size:15px; font-weight:700; color:#2C2A1E; cursor:pointer; transition:all 0.2s; box-shadow:0 4px 0 #D4A800; }
         .btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 0 #D4A800; }
         .btn-primary:active { transform:translateY(2px); box-shadow:0 2px 0 #D4A800; }
@@ -46,22 +75,52 @@ function Landing() {
         .btn-secondary:hover { background:#F5F0DC; }
         .feature-card { background:#fff; border:1.5px solid #E8E0C8; border-radius:16px; padding:20px 16px; text-align:center; transition:all 0.2s; }
         .feature-card:hover { transform:translateY(-4px); border-color:#F5C842; }
+        .testimonial-card { background:#fff; border:1.5px solid #E8E0C8; border-radius:20px; padding:28px 24px; position:relative; transition:all 0.3s; }
+        .testimonial-card:hover { transform:translateY(-6px); border-color:#F5C842; box-shadow:0 12px 40px rgba(245,200,66,0.15); }
+        .cta-glow { animation:glow 2s ease-in-out infinite alternate; }
       `}</style>
 
+      {/* Theme Toggle Button */}
+      <button 
+        onClick={toggleTheme}
+        style={{
+          position: 'fixed',
+          top: '24px',
+          right: '24px',
+          zIndex: 1000,
+          width: '50px',
+          height: '50px',
+          borderRadius: '50%',
+          background: theme.cardBg,
+          border: `2px solid ${theme.border}`,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '24px',
+          transition: 'all 0.3s ease',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        }}
+        onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+        onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+      >
+        {isDarkMode ? '☀️' : '🌙'}
+      </button>
+
       {/* Hero Section */}
-      <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'40px 24px', position:'relative', overflow:'hidden' }}>
+      <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'40px 24px', position:'relative', overflow:'hidden', transition: 'background 0.3s ease' }}>
 
         {/* BG blobs */}
-        <div style={{ position:'absolute', width:'500px', height:'500px', borderRadius:'50%', background:'#F5C842', top:'-150px', right:'-150px', opacity:0.06, animation:'bgPulse 6s ease-in-out infinite' }}/>
-        <div style={{ position:'absolute', width:'300px', height:'300px', borderRadius:'50%', background:'#F5C842', bottom:'-100px', left:'-80px', opacity:0.06, animation:'bgPulse 6s ease-in-out infinite 2s' }}/>
+        <div style={{ position:'absolute', width:'500px', height:'500px', borderRadius:'50%', background:theme.accent, top:'-150px', right:'-150px', opacity:isDarkMode ? 0.08 : 0.06, animation:'bgPulse 6s ease-in-out infinite' }}/>
+        <div style={{ position:'absolute', width:'300px', height:'300px', borderRadius:'50%', background:theme.accent, bottom:'-100px', left:'-80px', opacity:isDarkMode ? 0.08 : 0.06, animation:'bgPulse 6s ease-in-out infinite 2s' }}/>
 
         {/* Particles */}
         {[
-          { top:'15%', left:'8%', size:7, dur:'3.2s', delay:'0s', color:'#F5C842' },
-          { top:'30%', left:'88%', size:9, dur:'4s', delay:'0.5s', color:'#2C2A1E' },
-          { top:'65%', left:'12%', size:8, dur:'3.8s', delay:'1s', color:'#F5C842' },
-          { top:'55%', left:'82%', size:5, dur:'5s', delay:'1.5s', color:'#F5C842' },
-          { top:'80%', left:'50%', size:9, dur:'4.2s', delay:'0.8s', color:'#F5C842' },
+          { top:'15%', left:'8%', size:7, dur:'3.2s', delay:'0s', color:theme.accent },
+          { top:'30%', left:'88%', size:9, dur:'4s', delay:'0.5s', color:theme.text },
+          { top:'65%', left:'12%', size:8, dur:'3.8s', delay:'1s', color:theme.accent },
+          { top:'55%', left:'82%', size:5, dur:'5s', delay:'1.5s', color:theme.accent },
+          { top:'80%', left:'50%', size:9, dur:'4.2s', delay:'0.8s', color:theme.accent },
         ].map((p, i) => (
           <div key={i} style={{ position:'absolute', top:p.top, left:p.left, width:p.size, height:p.size, borderRadius:'50%', background:p.color, opacity:0.3, animation:`particleFloat linear ${p.dur} ${p.delay} infinite` }}/>
         ))}
@@ -70,16 +129,16 @@ function Landing() {
 
           {/* Left text */}
           <div style={{ maxWidth:'420px', animation:'fadeInUp 0.7s ease both' }}>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:'8px', background:'#F5F0DC', border:'1.5px solid #E8E0C8', borderRadius:'100px', padding:'6px 16px', fontSize:'13px', color:'#7A7560', marginBottom:'24px' }}>
-              <div style={{ width:'7px', height:'7px', borderRadius:'50%', background:'#F5C842', animation:'pulse 1.5s ease-in-out infinite' }}/>
+            <div style={{ display:'inline-flex', alignItems:'center', gap:'8px', background:isDarkMode ? '#1a1a2e' : '#F5F0DC', border:`1.5px solid ${theme.border}`, borderRadius:'100px', padding:'6px 16px', fontSize:'13px', color:theme.secondaryText, marginBottom:'24px' }}>
+              <div style={{ width:'7px', height:'7px', borderRadius:'50%', background:theme.accent, animation:'pulse 1.5s ease-in-out infinite' }}/>
               AI-powered study canvas
             </div>
 
-            <div style={{ fontSize:'48px', fontWeight:'800', color:'#2C2A1E', lineHeight:1.1, marginBottom:'16px', letterSpacing:'-1.5px' }}>
-              Stop panicking.<br/>Start <span style={{ color:'#F5C842' }}>Graspifying.</span>
+            <div style={{ fontSize:'48px', fontWeight:'800', color:theme.text, lineHeight:1.1, marginBottom:'16px', letterSpacing:'-1.5px' }}>
+              Stop panicking.<br/>Start <span style={{ color:theme.accent }}>Graspifying.</span>
             </div>
 
-            <p style={{ fontSize:'15px', color:'#7A7560', lineHeight:1.7, marginBottom:'32px' }}>
+            <p style={{ fontSize:'15px', color:theme.secondaryText, lineHeight:1.7, marginBottom:'32px' }}>
               One workspace for YouTube, Notes, PDFs and AI. Highlight anything, ask AI instantly. Your smartest study session starts here.
             </p>
 
@@ -116,10 +175,10 @@ function Landing() {
             ))}
 
             {/* AI bubble */}
-            <div style={{ position:'absolute', top:'20px', left:'10px', background:'#2C2A1E', color:'#FFFDF4', borderRadius:'12px 12px 12px 0', padding:'8px 12px', fontSize:'11px', maxWidth:'140px', lineHeight:1.5, animation:'float 3s ease-in-out infinite', zIndex:10 }}>
+            <div style={{ position:'absolute', top:'20px', left:'10px', background:theme.ctaBg, color:theme.ctaText, borderRadius:'12px 12px 12px 0', padding:'8px 12px', fontSize:'11px', maxWidth:'140px', lineHeight:1.5, animation:'float 3s ease-in-out infinite', zIndex:10 }}>
               Photosynthesis converts light to energy
-              <span style={{ display:'inline-block', width:'2px', height:'11px', background:'#F5C842', marginLeft:'2px', animation:'blink 1s step-end infinite', verticalAlign:'middle' }}/>
-              <div style={{ position:'absolute', bottom:'-8px', left:'12px', width:0, height:0, borderLeft:'8px solid transparent', borderTop:'8px solid #2C2A1E' }}/>
+              <span style={{ display:'inline-block', width:'2px', height:'11px', background:theme.accent, marginLeft:'2px', animation:'blink 1s step-end infinite', verticalAlign:'middle' }}/>
+              <div style={{ position:'absolute', bottom:'-8px', left:'12px', width:0, height:0, borderLeft:'8px solid transparent', borderTop:`8px solid ${theme.ctaBg}` }}/>
             </div>
 
             {/* SVG Student */}
@@ -195,35 +254,217 @@ function Landing() {
         </div>
       </div>
 
-      {/* Features */}
-      <div style={{ padding:'60px 24px', background:'#F5F0DC', borderTop:'1px solid #E8E0C8' }}>
-        <div style={{ textAlign:'center', marginBottom:'36px' }}>
-          <div style={{ fontSize:'28px', fontWeight:'800', color:'#2C2A1E', marginBottom:'8px' }}>Don't be that student. Use Graspify.</div>
-          <div style={{ fontSize:'14px', color:'#7A7560' }}>Everything you need. One canvas. Zero panic.</div>
+      {/* Testimonials Section */}
+      <div style={{ padding:'80px 24px', background:theme.sectionBg, position:'relative', overflow:'hidden', transition: 'background 0.3s ease' }}>
+        {/* Decorative elements */}
+        <div style={{ position:'absolute', top:'-50px', right:'-50px', width:'200px', height:'200px', borderRadius:'50%', background:theme.accent, opacity:isDarkMode ? 0.1 : 0.08 }}/>
+        <div style={{ position:'absolute', bottom:'-30px', left:'-30px', width:'150px', height:'150px', borderRadius:'50%', background:theme.accent, opacity:isDarkMode ? 0.08 : 0.06 }}/>
+        
+        <div style={{ textAlign:'center', marginBottom:'48px', position:'relative', zIndex:2 }}>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:'8px', background:theme.background, border:`1.5px solid ${theme.border}`, borderRadius:'100px', padding:'8px 20px', fontSize:'13px', color:theme.secondaryText, marginBottom:'20px' }}>
+            <span style={{ fontSize:'16px' }}>💬</span>
+            Loved by students
+          </div>
+          <div style={{ fontSize:'36px', fontWeight:'800', color:theme.text, marginBottom:'12px', letterSpacing:'-1px' }}>
+            What students say about <span style={{ color:theme.accent }}>Graspify</span>
+          </div>
+          <div style={{ fontSize:'15px', color:theme.secondaryText, maxWidth:'500px', margin:'0 auto' }}>
+            Real stories from real students who transformed their study sessions
+          </div>
         </div>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))', gap:'16px', maxWidth:'680px', margin:'0 auto' }}>
+
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:'24px', maxWidth:'1000px', margin:'0 auto', position:'relative', zIndex:2 }}>
+          {/* Testimonial 1 */}
+          <div className="testimonial-card" style={{ animation:'fadeInUp 0.6s ease both', background:theme.cardBg, borderColor:theme.border }}>
+            <div style={{ position:'absolute', top:'20px', left:'24px', fontSize:'48px', color:theme.accent, opacity:0.3, fontFamily:'Georgia, serif', lineHeight:1 }}>"</div>
+            <div style={{ fontSize:'16px', color:theme.text, lineHeight:1.7, marginBottom:'20px', paddingTop:'20px', fontStyle:'italic' }}>
+              Graspify literally saved my GPA. I used to switch between 10 tabs while studying. Now everything is in one place. The AI explanations are game-changing!
+            </div>
+            <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+              <div style={{ width:'44px', height:'44px', borderRadius:'50%', background:'linear-gradient(135deg,#667eea 0%,#764ba2 100%)', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontWeight:'700', fontSize:'18px' }}>
+                SM
+              </div>
+              <div>
+                <div style={{ fontSize:'14px', fontWeight:'700', color:theme.text }}>Sarah Mitchell</div>
+                <div style={{ fontSize:'12px', color:theme.secondaryText }}>Computer Science, Stanford</div>
+              </div>
+            </div>
+            <div style={{ marginTop:'16px', display:'flex', gap:'4px' }}>
+              {[...Array(5)].map((_, i) => (
+                <span key={i} style={{ color:theme.accent, fontSize:'16px' }}>★</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Testimonial 2 */}
+          <div className="testimonial-card" style={{ animation:'fadeInUp 0.6s ease 0.2s both', background:theme.cardBg, borderColor:theme.border }}>
+            <div style={{ position:'absolute', top:'20px', left:'24px', fontSize:'48px', color:theme.accent, opacity:0.3, fontFamily:'Georgia, serif', lineHeight:1 }}>"</div>
+            <div style={{ fontSize:'16px', color:theme.text, lineHeight:1.7, marginBottom:'20px', paddingTop:'20px', fontStyle:'italic' }}>
+              I was skeptical at first, but the highlight-to-AI feature is incredible. I just highlight confusing parts in my PDF and get instant explanations. It's like having a tutor 24/7.
+            </div>
+            <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+              <div style={{ width:'44px', height:'44px', borderRadius:'50%', background:'linear-gradient(135deg,#f093fb 0%,#f5576c 100%)', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontWeight:'700', fontSize:'18px' }}>
+                JC
+              </div>
+              <div>
+                <div style={{ fontSize:'14px', fontWeight:'700', color:theme.text }}>James Chen</div>
+                <div style={{ fontSize:'12px', color:theme.secondaryText }}>Biochemistry, MIT</div>
+              </div>
+            </div>
+            <div style={{ marginTop:'16px', display:'flex', gap:'4px' }}>
+              {[...Array(5)].map((_, i) => (
+                <span key={i} style={{ color:theme.accent, fontSize:'16px' }}>★</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Testimonial 3 */}
+          <div className="testimonial-card" style={{ animation:'fadeInUp 0.6s ease 0.4s both', background:theme.cardBg, borderColor:theme.border }}>
+            <div style={{ position:'absolute', top:'20px', left:'24px', fontSize:'48px', color:theme.accent, opacity:0.3, fontFamily:'Georgia, serif', lineHeight:1 }}>"</div>
+            <div style={{ fontSize:'16px', color:theme.text, lineHeight:1.7, marginBottom:'20px', paddingTop:'20px', fontStyle:'italic' }}>
+              The YouTube integration is brilliant. I can watch lectures, take notes, and have my PDFs open side by side. My study hours became 3x more productive. Highly recommend!
+            </div>
+            <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+              <div style={{ width:'44px', height:'44px', borderRadius:'50%', background:'linear-gradient(135deg,#4facfe 0%,#00f2fe 100%)', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontWeight:'700', fontSize:'18px' }}>
+                EP
+              </div>
+              <div>
+                <div style={{ fontSize:'14px', fontWeight:'700', color:theme.text }}>Emily Parker</div>
+                <div style={{ fontSize:'12px', color:theme.secondaryText }}>Economics, Harvard</div>
+              </div>
+            </div>
+            <div style={{ marginTop:'16px', display:'flex', gap:'4px' }}>
+              {[...Array(5)].map((_, i) => (
+                <span key={i} style={{ color:theme.accent, fontSize:'16px' }}>★</span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Animated arrow */}
+        <div style={{ textAlign:'center', marginTop:'48px', animation:'bounce 2s ease-in-out infinite' }}>
+          <div style={{ fontSize:'32px', color:theme.accent }}>↓</div>
+          <div style={{ fontSize:'12px', color:theme.secondaryText, marginTop:'8px', fontWeight:'600' }}>See the features</div>
+        </div>
+      </div>
+
+      {/* Smooth Transition Divider */}
+      <div style={{ height:'60px', background:`linear-gradient(180deg, ${theme.sectionBg} 0%, ${theme.background} 100%)`, position:'relative' }}>
+        <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%, -50%)', display:'flex', gap:'8px' }}>
+          {[...Array(3)].map((_, i) => (
+            <div key={i} style={{ 
+              width:'8px', 
+              height:'8px', 
+              borderRadius:'50%', 
+              background:theme.accent, 
+              opacity:0.4,
+              animation:`pulse 1.5s ease-in-out infinite ${i * 0.2}s`
+            }}/>
+          ))}
+        </div>
+      </div>
+
+      {/* Features */}
+      <div style={{ padding:'80px 24px', background:theme.background, position:'relative', transition: 'background 0.3s ease' }}>
+        <div style={{ textAlign:'center', marginBottom:'48px' }}>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:'8px', background:theme.sectionBg, border:`1.5px solid ${theme.border}`, borderRadius:'100px', padding:'8px 20px', fontSize:'13px', color:theme.secondaryText, marginBottom:'20px' }}>
+            <span style={{ fontSize:'16px' }}>⚡</span>
+            Powerful features
+          </div>
+          <div style={{ fontSize:'32px', fontWeight:'800', color:theme.text, marginBottom:'12px', letterSpacing:'-0.5px' }}>
+            Don't be that student. Use <span style={{ color:theme.accent }}>Graspify</span>.
+          </div>
+          <div style={{ fontSize:'15px', color:theme.secondaryText, maxWidth:'500px', margin:'0 auto' }}>
+            Everything you need. One canvas. Zero panic.
+          </div>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:'20px', maxWidth:'800px', margin:'0 auto' }}>
           {[
-            { icon:'▶', name:'YouTube panels', desc:'Watch lectures without switching tabs' },
-            { icon:'📝', name:'Smart notes', desc:'Auto-saved, always there when you need them' },
-            { icon:'✨', name:'Highlight & ask AI', desc:'Select any text, get instant explanations' },
-            { icon:'📄', name:'PDF viewer', desc:'Read study material right inside your canvas' },
+            { icon:'▶', name:'YouTube panels', desc:'Watch lectures without switching tabs', color:'#FF6B6B' },
+            { icon:'📝', name:'Smart notes', desc:'Auto-saved, always there when you need them', color:'#4ECDC4' },
+            { icon:'✨', name:'Highlight & ask AI', desc:'Select any text, get instant explanations', color:'#F5C842' },
+            { icon:'📄', name:'PDF viewer', desc:'Read study material right inside your canvas', color:'#95E1D3' },
           ].map((f, i) => (
-            <div key={i} className="feature-card">
-              <div style={{ fontSize:'28px', marginBottom:'10px' }}>{f.icon}</div>
-              <div style={{ fontSize:'13px', fontWeight:'700', color:'#2C2A1E', marginBottom:'4px' }}>{f.name}</div>
-              <div style={{ fontSize:'12px', color:'#7A7560', lineHeight:1.5 }}>{f.desc}</div>
+            <div key={i} className="feature-card" style={{ animation:`fadeInUp 0.5s ease ${i * 0.1}s both`, padding:'24px 20px', background:theme.cardBg, borderColor:theme.border }}>
+              <div style={{ 
+                width:'56px', 
+                height:'56px', 
+                borderRadius:'16px', 
+                background:`${f.color}20`, 
+                display:'flex', 
+                alignItems:'center', 
+                justifyContent:'center', 
+                fontSize:'28px', 
+                marginBottom:'16px',
+                margin:'0 auto 16px'
+              }}>
+                {f.icon}
+              </div>
+              <div style={{ fontSize:'14px', fontWeight:'700', color:theme.text, marginBottom:'6px' }}>{f.name}</div>
+              <div style={{ fontSize:'12px', color:theme.secondaryText, lineHeight:1.6 }}>{f.desc}</div>
             </div>
           ))}
         </div>
       </div>
 
+      {/* Smooth Transition to CTA */}
+      <div style={{ height:'80px', background:`linear-gradient(180deg, ${theme.background} 0%, ${theme.ctaBg} 100%)`, position:'relative' }}>
+        <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%, -50%)' }}>
+          <div style={{ 
+            width:'60px', 
+            height:'60px', 
+            borderRadius:'50%', 
+            background:theme.accent, 
+            display:'flex', 
+            alignItems:'center', 
+            justifyContent:'center',
+            fontSize:'24px',
+            animation:'bounce 2s ease-in-out infinite',
+            boxShadow:'0 0 30px rgba(245,200,66,0.4)'
+          }}>
+            🚀
+          </div>
+        </div>
+      </div>
+
       {/* CTA */}
-      <div style={{ textAlign:'center', padding:'60px 24px', background:'#2C2A1E' }}>
-        <div style={{ fontSize:'32px', fontWeight:'800', color:'#F5C842', marginBottom:'8px' }}>Ready to stop panicking? 😅</div>
-        <div style={{ fontSize:'15px', color:'#B0A890', marginBottom:'28px' }}>Join students already studying smarter with Graspify.</div>
-        <button className="btn-primary" style={{ fontSize:'16px', padding:'16px 40px' }} onClick={handleAuth}>
-          Sign up or Login — it's easy ✨
-        </button>
+      <div style={{ textAlign:'center', padding:'100px 24px', background:theme.ctaBg, position:'relative', overflow:'hidden', transition: 'background 0.3s ease' }}>
+        {/* Animated background elements */}
+        <div style={{ position:'absolute', top:'20%', left:'10%', width:'300px', height:'300px', borderRadius:'50%', background:theme.accent, opacity:isDarkMode ? 0.08 : 0.05, animation:'bgPulse 8s ease-in-out infinite' }}/>
+        <div style={{ position:'absolute', bottom:'20%', right:'10%', width:'200px', height:'200px', borderRadius:'50%', background:theme.accent, opacity:isDarkMode ? 0.1 : 0.08, animation:'bgPulse 8s ease-in-out infinite 3s' }}/>
+        
+        <div style={{ position:'relative', zIndex:2, maxWidth:'600px', margin:'0 auto' }}>
+          <div style={{ fontSize:'14px', color:theme.accent, fontWeight:'600', marginBottom:'16px', letterSpacing:'2px', textTransform:'uppercase', animation:'fadeIn 1s ease both' }}>
+            Start Your Journey
+          </div>
+          <div style={{ fontSize:'42px', fontWeight:'800', color:theme.ctaText, marginBottom:'16px', lineHeight:1.2, animation:'fadeInUp 0.8s ease 0.2s both' }}>
+            Ready to stop panicking? <span style={{ display:'inline-block', animation:'bounce 2s ease-in-out infinite' }}>😅</span>
+          </div>
+          <div style={{ fontSize:'16px', color:theme.secondaryText, marginBottom:'40px', lineHeight:1.6, animation:'fadeInUp 0.8s ease 0.4s both' }}>
+            Join thousands of students already studying smarter with Graspify. Your GPA will thank you.
+          </div>
+          
+          <div style={{ display:'flex', gap:'16px', justifyContent:'center', flexWrap:'wrap', animation:'fadeInUp 0.8s ease 0.6s both' }}>
+            <button className="btn-primary cta-glow" style={{ fontSize:'16px', padding:'18px 48px', borderRadius:'16px' }} onClick={handleAuth}>
+              Sign up or Login — it's easy ✨
+            </button>
+            <button style={{ fontSize:'16px', padding:'18px 36px', borderRadius:'16px', borderColor:theme.accent, color:theme.accent, background:'transparent', border:'2px solid', fontWeight:'600', cursor:'pointer', transition:'all 0.2s' }} onClick={handleGuest} onMouseEnter={(e) => e.target.style.background = isDarkMode ? 'rgba(245,200,66,0.2)' : 'rgba(245,200,66,0.1)'} onMouseLeave={(e) => e.target.style.background = 'transparent'}>
+              Try as guest →
+            </button>
+          </div>
+
+          <div style={{ marginTop:'40px', display:'flex', alignItems:'center', justifyContent:'center', gap:'24px', color:theme.secondaryText, fontSize:'13px', animation:'fadeIn 1s ease 0.8s both' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+              <span style={{ color:theme.accent }}>✓</span> No credit card required
+            </div>
+            <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+              <span style={{ color:theme.accent }}>✓</span> Free forever for basic
+            </div>
+            <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+              <span style={{ color:theme.accent }}>✓</span> Cancel anytime
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
